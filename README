@@ -1,6 +1,7 @@
 
-Author: Barbara Plank
+(c) Barbara Plank, August 2011
 
-Description: Various Python utilities for manipulating CoNLL
-dependency parsing files.
+Various Python utilities for manipulating CoNLL dependency parsing
+files.
+
 
