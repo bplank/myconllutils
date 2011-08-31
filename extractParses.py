@@ -20,8 +20,8 @@ def main():
     parser = OptionParser(usage=usage)
     parser.add_option("--minLen", dest="minLen",default=0,type="int",
                   help="extract sentences that have a minimum length")
-    parser.add_option("--maxLen", dest="maxLen",
-                  help="extract sentences up to this length",type="int")
+    parser.add_option("--maxLen", dest="maxLen",type="int",
+                  help="extract sentences up to this length")
 
 
     (options, args) = parser.parse_args()
@@ -39,8 +39,9 @@ def main():
     
     for i in instances1:
         if i.getSentenceLength() > options.minLen:
-            if options.maxLen and i.getSentenceLength() <= options.maxLen:
-                print(i)
+            if options.maxLen:
+                if i.getSentenceLength() <= options.maxLen:
+                    print(i)
             else:
                 print(i)
 
