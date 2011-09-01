@@ -28,21 +28,42 @@ class Conll07Reader:
         phead = []
         pdeprel = []
 
-        while len(lineList) == 10:
-            ids.append(lineList[0])
-            form.append(lineList[1])
-            lemma.append(lineList[2])
-            cpos.append(lineList[3])
-            pos.append(lineList[4])
-            feats.append(lineList[5])
-            head.append(lineList[6])
-            deprel.append(lineList[7])
-            phead.append(lineList[8])
-            pdeprel.append(lineList[9])
+        if len(lineList) == 10:
+            # contains all cols, also phead/pdeprel
+            while len(lineList) == 10:
+                ids.append(lineList[0])
+                form.append(lineList[1])
+                lemma.append(lineList[2])
+                cpos.append(lineList[3])
+                pos.append(lineList[4])
+                feats.append(lineList[5])
+                head.append(lineList[6])
+                deprel.append(lineList[7])
+                phead.append(lineList[8])
+                pdeprel.append(lineList[9])
 
-            line = self.FILE.readline()
-            line = line.strip()
-            lineList = line.split("\t")
+                line = self.FILE.readline()
+                line = line.strip()
+                lineList = line.split("\t")
+        elif len(lineList) == 8:
+            while len(lineList) == 8:
+                ids.append(lineList[0])
+                form.append(lineList[1])
+                lemma.append(lineList[2])
+                cpos.append(lineList[3])
+                pos.append(lineList[4])
+                feats.append(lineList[5])
+                head.append(lineList[6])
+                deprel.append(lineList[7])
+                phead.append("_")
+                pdeprel.append("_")
+
+                line = self.FILE.readline()
+                line = line.strip()
+                lineList = line.split("\t")
+        elif len(lineList) > 1:
+            raise Exception("not in right format!")
+
 
         if len(form) > 0: 
             return DependencyInstance(ids,form,lemma,cpos,pos,feats,head,deprel,phead,pdeprel)
@@ -59,6 +80,14 @@ class Conll07Reader:
 
             instance = self.getNext()
         return instances 
+
+    def getSentences(self):
+        """ return sentences as list of lists """
+        instances = self.getInstances()
+        sents = []
+        for i in instances:
+            sents.append(i.form)
+        return sents
 
    
 
