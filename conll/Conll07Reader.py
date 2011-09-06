@@ -104,7 +104,7 @@ class DependencyInstance:
         self.headid = headid
         self.deprel = deprel
         self.phead = phead
-        self.pdeprel = pdeprel
+        self.pdeprel = pdeprel       
         
     def __str__(self):
         s = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\n"
@@ -112,6 +112,9 @@ class DependencyInstance:
         for i in range(len(self.form)):
             sout += s.format(self.ids[i],self.form[i],self.lemma[i],self.cpos[i],self.pos[i],self.feats[i],self.headid[i],self.deprel[i],self.phead[i],self.pdeprel[i])
         return sout
+
+    def __repr__(self):
+        return self.__str__()
 
     def equalForm(self,instance):
         for f1,f2 in zip(self.form,instance.form):
