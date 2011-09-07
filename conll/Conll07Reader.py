@@ -141,3 +141,5 @@ class DependencyInstance:
     def getSentenceLength(self):
         return len(self.form)
 
+    def getSentence(self):
+        return self.form
