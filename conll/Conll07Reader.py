@@ -37,7 +37,7 @@ class Conll07Reader:
                 cpos.append(lineList[3])
                 pos.append(lineList[4])
                 feats.append(lineList[5])
-                head.append(lineList[6])
+                head.append(int(lineList[6]))
                 deprel.append(lineList[7])
                 phead.append(lineList[8])
                 pdeprel.append(lineList[9])
@@ -53,7 +53,7 @@ class Conll07Reader:
                 cpos.append(lineList[3])
                 pos.append(lineList[4])
                 feats.append(lineList[5])
-                head.append(lineList[6])
+                head.append(int(lineList[6]))
                 deprel.append(lineList[7])
                 phead.append("_")
                 pdeprel.append("_")
@@ -143,3 +143,61 @@ class DependencyInstance:
 
     def getSentence(self):
         return self.form
+
+    def getLemmaTriples(self,conjunction="con"):
+        triples = {}
+        i=0
+        for hid in self.headid:
+            r = self.deprel[i]
+            w_d = self.lemma[i]
+            if hid != 0:
+                w_h = self.lemma[hid-1]
+            else:
+                w_h = 'root'
+            triple = "{} {} {}".format(r,w_h,w_d)
+            triples[triple] = triples.get(triple,0) + 1
+            i+=1     
+        #triples = self.addExtendedTriples(triples,conjunction)
+        return triples
+
+    def addExtendedTriples(self,triples,conjunction="con"):
+        """ add r(A,C) for every pair of dependecy triples r(A,B) cnj(B,C) """
+        for t in triples:
+            if t.startswith(conjunction):
+                tab = t.split(" ")
+                for t2 in triples:
+                    if t2.endswith(tab[1]):
+                        tab2 = t.split(" ")
+                        newtriple = "{} {} {}".format(tab2[0],tab2[1],tab[2])
+                        triples[newtriple] = triples[t2]
+                        continue
+        return triples
+                
+    
+    def getAllLemmaTriples(self):
+        """ also returns counts of parts of relation """
+        triples = {}
+        i=0
+        for hid in self.headid:
+            r = self.deprel[i]
+            w_d = self.lemma[i]
+            if hid != 0:
+                w_h = self.lemma[hid-1]
+            else:
+                w_h = '<root-LEMMA>'
+            triple = "{} {} {}".format(r,w_h,w_d) #rel(w1,w2)
+            triples[triple] = triples.get(triple,0) + 1
+
+            triple_r_w1 = "{} {} _".format(r,w_h)
+            triples[triple_r_w1] = triples.get(triple_r_w1,0) + 1
+
+            #triple_w2 = "_ _ {}".format(w_d)
+            #triples[triple_w2] = triples.get(triple_w2,0) + 1
+
+            triple_w2x = "{} _ {}".format(r,w_d)
+            triples[triple_w2x] = triples.get(triple_w2x,0) + 1
+
+            i+=1  
+        return triples
+        
+        
