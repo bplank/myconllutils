@@ -1,3 +1,4 @@
+import sys
 class Conll07Reader:
     ### read Conll 2007 data
     ### http://nextens.uvt.nl/depparse-wiki/DataFormat
@@ -31,7 +32,7 @@ class Conll07Reader:
         if len(lineList) == 10:
             # contains all cols, also phead/pdeprel
             while len(lineList) == 10:
-                ids.append(lineList[0])
+                ids.append(int(lineList[0]))
                 form.append(lineList[1])
                 lemma.append(lineList[2])
                 cpos.append(lineList[3])
@@ -144,60 +145,83 @@ class DependencyInstance:
     def getSentence(self):
         return self.form
 
-    def getLemmaTriples(self,conjunction="con"):
-        triples = {}
-        i=0
-        for hid in self.headid:
-            r = self.deprel[i]
-            w_d = self.lemma[i]
-            if hid != 0:
-                w_h = self.lemma[hid-1]
-            else:
-                w_h = 'root'
-            triple = "{} {} {}".format(r,w_h,w_d)
-            triples[triple] = triples.get(triple,0) + 1
-            i+=1     
-        #triples = self.addExtendedTriples(triples,conjunction)
-        return triples
+    def getLemmaTriples(self):
+        return self.getTriples(self.lemma)
 
-    def addExtendedTriples(self,triples,conjunction="con"):
-        """ add r(A,C) for every pair of dependecy triples r(A,B) cnj(B,C) """
-        for t in triples:
-            if t.startswith(conjunction):
-                tab = t.split(" ")
-                for t2 in triples:
-                    if t2.endswith(tab[1]):
-                        tab2 = t.split(" ")
-                        newtriple = "{} {} {}".format(tab2[0],tab2[1],tab[2])
-                        triples[newtriple] = triples[t2]
-                        continue
-        return triples
-                
-    
-    def getAllLemmaTriples(self):
-        """ also returns counts of parts of relation """
+    def getFormTriples(self):
+        return self.getTriples(self.form)
+
+    def getTriples(self,wordform):
         triples = {}
-        i=0
-        for hid in self.headid:
+        for i in range(len(wordform)):
             r = self.deprel[i]
-            w_d = self.lemma[i]
+            w_d = wordform[i].replace(" ","")
+            hid = self.headid[i]
             if hid != 0:
-                w_h = self.lemma[hid-1]
+                w_h = wordform[hid-1].replace(" ","")
             else:
                 w_h = '<root-LEMMA>'
-            triple = "{} {} {}".format(r,w_h,w_d) #rel(w1,w2)
+            triple = "{} {} {}".format(r,w_h,w_d)
             triples[triple] = triples.get(triple,0) + 1
-
-            triple_r_w1 = "{} {} _".format(r,w_h)
-            triples[triple_r_w1] = triples.get(triple_r_w1,0) + 1
-
-            #triple_w2 = "_ _ {}".format(w_d)
-            #triples[triple_w2] = triples.get(triple_w2,0) + 1
-
-            triple_w2x = "{} _ {}".format(r,w_d)
-            triples[triple_w2x] = triples.get(triple_w2x,0) + 1
-
-            i+=1  
+        #triples = self._addExtendedTriples(triples,wordform)
         return triples
-        
-        
+
+    # def _addExtendedTriples(self,triples,wordform):
+    #     """ add r(A,C) for every triple r(A,B) prep(B,C) """
+    #     """ e.g. comp(centinaia,di) + prep(di,feriti) => comp(centinaia,feriti) """
+    #     for i in range(len(wordform)):
+    #         r = self.deprel[i]
+    #         w_C = wordform[i].replace(" ","")
+    #         hid = self.headid[i]-1 
+    #         if hid != 0:
+    #             w_B = wordform[hid].replace(" ","")
+    #         else:
+    #             w_B = '<root-LEMMA>!'
+    #         if r == "prep" and hid != 0:
+    #             hid_B = self.headid[hid]-1
+    #             w_A = wordform[hid_B].replace(" ","")
+    #             r_new = self.deprel[hid]
+    #             triple = "{} {} {}".format(r_new,w_A,w_C)
+    #             triples[triple] = triples.get(triple,0) + 1
+
+    #     #TODO
+    #     """ add r(A,C) for every pair of dependecy triples r(A,B) cnj(B,C) """
+    #    return triples
+
+    def getAllLemmaTriples(self):
+        return self.getAllTriples(self.lemma)
+
+    def getAllFormTriples(self):
+        return self.getAllTriples(self.form)
+
+    def getAllTriples(self,wordform):
+        """ also returns counts of parts of relation """
+        triples = self.getTriples(wordform)
+        actualtriples = triples.copy()
+        for triple in actualtriples:
+            try:
+                r,w_h,w_d = triple.split(" ")
+
+                #triple_r_w1 = "{} {} _".format(r,w_h)
+                triple_r_w1 = "{} {}  ".format(r,w_h)
+                triples[triple_r_w1] = triples.get(triple_r_w1,0) + 1
+
+                # Gertjan
+                #triple_w2 = "_ _ {}".format(w_d)
+                #triples[triple_w2] = triples.get(triple_w2,0) + 1
+
+                #triple_w2x = "{} _ {}".format(r,w_d)
+                triple_w2x = "{}   {}".format(r,w_d)
+                triples[triple_w2x] = triples.get(triple_w2x,0) + 1
+
+                # Lin:
+                #triple_r = "{} _ _".format(r)
+                #triples[triple_r] = triples.get(triple_r,0) +1
+
+            except ValueError:
+                print("Error when splitting triples: {}".format(triple))
+                sys.exit(-1)
+        return triples
+
+
+
